@@ -1,0 +1,55 @@
+{
+  "version": "7",
+  "dialect": "sqlite",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "6",
+      "when": 1788960976244,
+      "tag": "0000_sloppy_major_mapleleaf",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1788966181640,
+      "tag": "0001_absent_eddie_brock",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1788966729420,
+      "tag": "0002_complex_vindicator",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1789014260936,
+      "tag": "0003_short_maggott",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1789015940328,
+      "tag": "0004_skinny_turbo",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1789046577589,
+      "tag": "0005_simple_purifiers",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1789057571079,
+      "tag": "0006_nifty_sersi",
+      "breakpoints": true
+    }
+  ]
+}
