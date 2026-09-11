@@ -11,10 +11,16 @@ export async function POST(request: Request) {
     if (typeof body.version !== 'string') return error('请选择版本');
     const source = await db()
       .prepare(
-        'SELECT v.html,v.mode,p.title FROM versions v JOIN projects p ON p.id=v.project WHERE v.id = ? AND p.owner = ?',
+        'SELECT v.html,v.mode,p.title,p.description,p.instructions FROM versions v JOIN projects p ON p.id=v.project WHERE v.id = ? AND p.owner = ?',
       )
       .bind(body.version, account.id)
-      .first<{ html: string; mode: string; title: string }>();
+      .first<{
+        html: string;
+        mode: string;
+        title: string;
+        description: string;
+        instructions: string;
+      }>();
     if (!source) return error('版本不存在', 404);
     const project = crypto.randomUUID(),
       version = crypto.randomUUID(),
@@ -22,9 +28,16 @@ export async function POST(request: Request) {
     await db().batch([
       db()
         .prepare(
-          'INSERT INTO projects (id,owner,title,created) VALUES (?,?,?,?)',
+          'INSERT INTO projects (id,owner,title,created,description,instructions) VALUES (?,?,?,?,?,?)',
         )
-        .bind(project, account.id, source.title.slice(0, 30) + ' · 分支', now),
+        .bind(
+          project,
+          account.id,
+          source.title.slice(0, 30) + ' · 分支',
+          now,
+          source.description,
+          source.instructions,
+        ),
       db()
         .prepare(
           'INSERT INTO versions (id,project,prompt,html,summary,mode,created) VALUES (?,?,?,?,?,?,?)',

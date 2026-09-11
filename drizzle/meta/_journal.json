@@ -50,6 +50,13 @@
       "when": 1789057571079,
       "tag": "0006_nifty_sersi",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "6",
+      "when": 1789113564168,
+      "tag": "0007_fair_felicia_hardy",
+      "breakpoints": true
     }
   ]
 }

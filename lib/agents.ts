@@ -28,73 +28,12 @@ function productDecision(prompt: string) {
   return '先实现一条完整主流程，再补齐必要状态与移动端体验。';
 }
 
-export function collaborationTrace(
-  prompt: string,
-  hasPrevious: boolean,
-  completed = 0,
-  outcome: 'pending' | 'success' | 'error' | 'clarification' = 'pending',
-): AgentActivity[] {
-  const target = compact(prompt || '恢复已保存的历史版本');
-  const activities: AgentActivity[] = [
-    {
-      role: 'analyst',
-      name: '需求分析师',
-      title: hasPrevious ? '确认本轮变更边界' : '确认产品目标与范围',
-      detail: hasPrevious
-        ? `基于现有应用处理本轮要求：${target}`
-        : `将需求收敛为一个可直接体验的核心产品：${target}`,
-      status: 'pending',
-    },
-    {
-      role: 'designer',
-      name: '产品设计师',
-      title: '确定核心交互方案',
-      detail: productDecision(prompt),
-      status: 'pending',
-    },
-    {
-      role: 'engineer',
-      name: '应用工程师',
-      title: hasPrevious ? '实现并合并本轮修改' : '生成可运行应用',
-      detail: hasPrevious
-        ? '读取当前版本，在保留已有功能和数据的基础上修改应用。'
-        : '生成独立运行的 HTML、样式和交互逻辑，并接入数据持久化。',
-      status: 'pending',
-      changes: hasPrevious
-        ? ['保留现有功能', '应用本轮变更', '更新预览源码']
-        : ['创建页面结构', '实现核心交互', '接入持久化存储'],
-    },
-    {
-      role: 'reviewer',
-      name: '质量审查员',
-      title: '校验结果并保存版本',
-      detail: '检查文档完整性、沙箱兼容性、核心交互和持久化约束。',
-      status: 'pending',
-      changes: ['验证可运行性', '保存不可变版本', '刷新右侧预览'],
-    },
-  ];
-
-  return activities.map((activity, index) => ({
-    ...activity,
-    status:
-      outcome === 'error' && index === Math.min(completed, activities.length - 1)
-        ? 'error'
-        : outcome === 'clarification' && index === 0
-          ? 'active'
-          : outcome === 'success' || index < completed
-            ? 'done'
-            : index === completed
-              ? 'active'
-              : 'pending',
-  }));
-}
-
 export function engineeringBrief(prompt: string, hasPrevious: boolean) {
-  const trace = collaborationTrace(prompt, hasPrevious);
+  const target = compact(prompt || '恢复已保存的历史版本');
   return [
-    `需求分析：${trace[0].detail}`,
-    `产品方案：${trace[1].detail}`,
-    `工程任务：${trace[2].detail}`,
+    `需求范围：${hasPrevious ? '基于现有应用实现本轮修改' : '创建一个可直接体验的核心产品'}：${target}`,
+    `交互方案：${productDecision(prompt)}`,
+    `工程任务：${hasPrevious ? '保留现有功能与数据并应用本轮变更' : '生成独立运行的 HTML、样式与交互逻辑，并接入持久化'}`,
     '质量门槛：输出必须是完整可运行 HTML，核心交互可用，数据可以持久保存。',
   ].join('\n');
 }

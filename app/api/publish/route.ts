@@ -18,10 +18,15 @@ export async function POST(request: Request) {
     if (typeof body.project !== 'string') return error('请选择项目');
     const project = await db()
       .prepare(
-        'SELECT id,published_version FROM projects WHERE id = ? AND owner = ?',
+        'SELECT id,published_version,review_status,review_version FROM projects WHERE id = ? AND owner = ?',
       )
       .bind(body.project, account.id)
-      .first<{ id: string; published_version: string | null }>();
+      .first<{
+        id: string;
+        published_version: string | null;
+        review_status: string;
+        review_version: string | null;
+      }>();
     if (!project) return error('项目不存在', 404);
 
     if (body.action === 'unpublish') {
@@ -38,6 +43,11 @@ export async function POST(request: Request) {
     if (body.action !== 'publish' || typeof body.version !== 'string')
       return error('请选择要发布的版本');
     if (project.published_version) return error('项目已经发布', 409);
+    if (
+      project.review_status !== 'submitted' ||
+      project.review_version !== body.version
+    )
+      return error('请先提交当前版本的 Atoms 验证请求', 409);
     const version = await db()
       .prepare('SELECT id FROM versions WHERE id = ? AND project = ?')
       .bind(body.version, body.project)

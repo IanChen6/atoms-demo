@@ -1,4 +1,4 @@
-"""Run against the local development server to verify progressive agent events."""
+"""Run against the local development server to verify truthful progress events."""
 
 import http.cookiejar
 import json
@@ -31,7 +31,6 @@ request = urllib.request.Request(
     data=json.dumps(
         {
             "prompt": "待办清单，支持添加、完成和删除任务",
-            "mode": "demo",
         }
     ).encode(),
     headers={
@@ -50,13 +49,16 @@ with opener.open(request) as response:
 progress = [event for event in events if event["type"] == "progress"]
 result = [event for event in events if event["type"] == "result"]
 assert len(progress) >= 4, events
-assert [item["status"] for item in progress[0]["trace"]] == [
-    "active",
-    "pending",
-    "pending",
-    "pending",
-]
+assert [item["name"] for item in progress[0]["trace"]] == ["请求路由"]
+assert [item["status"] for item in progress[0]["trace"]] == ["done"]
 assert all(item["status"] == "done" for item in progress[-1]["trace"])
+assert [item["name"] for item in progress[-1]["trace"]] == [
+    "请求路由",
+    "工程规划",
+    "模型执行",
+    "结果校验",
+    "版本存储",
+]
 assert result[-1]["outcome"] == "success"
 assert "reasoning" not in json.dumps(events).lower()
-print("PASS: progressive public agent events and terminal result")
+print("PASS: progressive verified execution events and terminal result")

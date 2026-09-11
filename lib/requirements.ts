@@ -16,8 +16,56 @@ export function clarificationFor(prompt: string, hasExistingApp: boolean) {
   ].join('\n');
 }
 
+export type StudioIntent = 'chat' | 'build';
+
+export function studioIntent(
+  prompt: string,
+  hasExistingApp: boolean,
+  hasSelection = false,
+): StudioIntent {
+  if (hasSelection) return 'build';
+  const text = prompt.trim();
+  const conversationalQuestion =
+    /^(什么|为什么|为何|怎么|如何|能否解释|介绍一下|聊聊|你觉得|请问|有没有建议)/.test(
+      text,
+    ) || /[？?]$/.test(text);
+  if (conversationalQuestion) return 'chat';
+  const explicitBuild =
+    /(?:做|创建|生成|开发|构建|搭建|实现|制作|设计)(?:一个|个|一下|款)?[^。！？!?]{0,24}(?:应用|app|网站|网页|页面|小程序|游戏|工具|系统|组件|表单|看板|仪表盘)/i.test(
+      text,
+    ) ||
+    /(?:帮我|请)(?:做|写|改|调整|增加|添加|删除|优化|修复|重构|换成|改成)/i.test(
+      text,
+    ) ||
+    /(?:应用|app|网站|网页|页面|小程序|游戏|工具|系统|表单|看板|待办|计时器|记事本)[^。！？!?]{0,28}(?:支持|包含|具有|实现|可以|能够)/i.test(
+      text,
+    );
+  const appChange =
+    hasExistingApp &&
+    /(?:修改|调整|增加|添加|删除|优化|修复|重构|改成|换成|颜色|主题|布局|按钮|文案|交互|功能|页面|样式|响应式)/i.test(
+      text,
+    );
+  return explicitBuild || appChange ? 'build' : 'chat';
+}
+
+export function cleanProviderValue(value: string) {
+  const trimmed = value.trim();
+  if (
+    trimmed.length >= 2 &&
+    ((trimmed.startsWith('"') && trimmed.endsWith('"')) ||
+      (trimmed.startsWith("'") && trimmed.endsWith("'")))
+  )
+    return trimmed.slice(1, -1).trim();
+  return trimmed;
+}
+
 export function providerOptions(baseUrl: string, maxOutputTokens: number) {
-  const host = new URL(baseUrl).hostname;
+  let host = '';
+  try {
+    host = new URL(cleanProviderValue(baseUrl)).hostname;
+  } catch {
+    return { max_tokens: maxOutputTokens };
+  }
   if (host === 'api.openai.com') {
     return {
       max_completion_tokens: maxOutputTokens,
@@ -31,7 +79,12 @@ export function providerOptions(baseUrl: string, maxOutputTokens: number) {
 }
 
 export function providerLabel(baseUrl: string) {
-  const host = new URL(baseUrl).hostname;
+  let host = '';
+  try {
+    host = new URL(cleanProviderValue(baseUrl)).hostname;
+  } catch {
+    return '模型服务';
+  }
   if (host.endsWith('aliyuncs.com')) return '阿里云百炼';
   if (host === 'api.openai.com') return 'OpenAI';
   return '模型服务';

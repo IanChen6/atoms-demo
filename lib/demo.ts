@@ -1,71 +1,3 @@
-export function demo(prompt: string, previous = '') {
-  const kind = /计时|timer|番茄|专注/i.test(prompt)
-    ? 'timer'
-    : /笔记|记事|note/i.test(prompt)
-      ? 'notes'
-      : previous.includes('data-kind="notes"')
-        ? 'notes'
-        : previous.includes('data-kind="timer"')
-          ? 'timer'
-          : 'todo';
-  const color = /绿|green/i.test(prompt)
-    ? '#16806a'
-    : /紫|purple/i.test(prompt)
-      ? '#7955d9'
-      : /红|red/i.test(prompt)
-        ? '#d34959'
-        : '#315efb';
-  const dark = /深色|暗色|dark/i.test(prompt);
-  const title =
-    kind === 'timer'
-      ? '留一点时间，给专注。'
-      : kind === 'notes'
-        ? '把灵感，留在这里。'
-        : '今天，专注于重要的事。';
-  const content =
-    kind === 'timer'
-      ? '<div class="timer" id="clock">25:00</div><div class="actions"><button id="start">开始专注</button><button id="reset" class="secondary">重置</button></div><p id="status">准备好后，开始你的 25 分钟。</p>'
-      : '<form id="entry"><input id="text" required maxlength="300" placeholder="' +
-        (kind === 'notes' ? '写下一个灵感…' : '添加一个新任务…') +
-        '"><button>添加</button></form><input id="search" placeholder="搜索' +
-        (kind === 'notes' ? '笔记' : '任务') +
-        '…" aria-label="搜索"><div id="list"></div><p id="count"></p>';
-  return (
-    '<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>' +
-    title +
-    '</title><style>*{box-sizing:border-box}body{margin:0;background:' +
-    (dark ? '#151b29' : '#f8faff') +
-    ';color:' +
-    (dark ? '#e7edf9' : '#24314c') +
-    ';font:16px Arial,"PingFang SC",sans-serif}main{max-width:650px;margin:60px auto;padding:24px}small{color:' +
-    color +
-    ';letter-spacing:3px}h1{font-size:clamp(24px,5vw,36px);line-height:1.5;margin:24px 0 8px}.subtitle{color:#8893a5;margin-bottom:34px;line-height:1.8}form,.row,.actions{display:flex;gap:12px;align-items:center}input{border:1px solid #ccd5e5;background:transparent;color:inherit;padding:14px;border-radius:9px;font:inherit;min-width:0}form input{flex:1}button{border:0;background:' +
-    color +
-    ';color:white;padding:14px 18px;border-radius:9px;cursor:pointer;font:inherit}button.secondary{background:#dfe6f2;color:#324561}#search{width:100%;margin:20px 0 12px}.row{padding:17px 4px;border-bottom:1px solid #c9d1df55}.row span{flex:1;overflow-wrap:anywhere;white-space:pre-wrap}.row button{background:transparent;color:#8690a2;padding:5px}.row.done span{text-decoration:line-through;opacity:.5}#count,#status{color:#8791a3;font-size:14px;margin-top:24px}.timer{font-size:80px;font-variant-numeric:tabular-nums;margin:45px 0}.tag{border:1px solid #ccd5e5;border-radius:20px;padding:5px 10px;font-size:12px;color:#8893a5;float:right}@media(max-width:450px){main{margin:15px auto;padding:20px}.timer{font-size:64px}}</style></head><body data-kind="' +
-    kind +
-    '"><main><small>' +
-    (kind === 'timer'
-      ? 'FOCUS / TIME'
-      : kind === 'notes'
-        ? 'CAPTURE / IDEAS'
-        : 'LESS / BUT BETTER') +
-    '</small><span class="tag">交互示例</span><h1>' +
-    title +
-    '</h1><p class="subtitle">' +
-    (kind === 'timer'
-      ? '关掉干扰，留出一段属于自己的时间。'
-      : kind === 'notes'
-        ? '每一个值得记住的想法，都有自己的位置。'
-        : '清空脑海中的待办，一次向前迈出一步。') +
-    '</p>' +
-    content +
-    '</main><script>' +
-    (kind === 'timer'
-      ? `let remaining=1500,interval=null;const clock=document.getElementById('clock'),start=document.getElementById('start');function draw(){clock.textContent=String(Math.floor(remaining/60)).padStart(2,'0')+':'+String(remaining%60).padStart(2,'0')}start.onclick=()=>{if(interval){clearInterval(interval);interval=null;start.textContent='继续专注'}else{start.textContent='暂停';document.getElementById('status').textContent='正在专注，每一分钟都算数。';interval=setInterval(()=>{remaining--;draw();if(remaining<=0){clearInterval(interval);interval=null;start.disabled=true;document.getElementById('status').textContent='完成了！休息一下吧。'}},1000)}};document.getElementById('reset').onclick=()=>{clearInterval(interval);interval=null;remaining=1500;start.disabled=false;start.textContent='开始专注';draw()};`
-      : `let items=[];try{items=JSON.parse(localStorage.getItem('atom-demo-items')||'[]')}catch(e){}const list=document.getElementById('list'),input=document.getElementById('text'),search=document.getElementById('search');function save(){localStorage.setItem('atom-demo-items',JSON.stringify(items))}function draw(){list.replaceChildren();const filtered=items.filter(x=>x.text.toLowerCase().includes(search.value.toLowerCase()));for(const item of filtered){const row=document.createElement('div');row.className='row'+(item.done?' done':'');${kind === 'todo' ? `const check=document.createElement('input');check.type='checkbox';check.checked=item.done;check.setAttribute('aria-label','完成任务');check.onchange=()=>{item.done=check.checked;save();draw()};row.append(check);` : ''}const span=document.createElement('span');span.textContent=item.text;const del=document.createElement('button');del.textContent='×';del.setAttribute('aria-label','删除');del.onclick=()=>{items=items.filter(x=>x.id!==item.id);save();draw()};row.append(span,del);list.append(row)}document.getElementById('count').textContent=items.length?items.length+' 条记录 · 已自动保存':'还没有记录，添加第一条吧。'}document.getElementById('entry').onsubmit=e=>{e.preventDefault();if(!input.value.trim())return;items.unshift({id:Date.now()+Math.random(),text:input.value.trim(),done:false});input.value='';save();draw()};search.oninput=draw;draw();`) +
-    '</script></body></html>'
-  );
-}
 export function extractHtmlDocument(raw: string) {
   const source = raw.replaceAll(String.fromCharCode(0), '').trim();
   const htmlStart = source.search(/<html[\s>]/i);
@@ -74,6 +6,54 @@ export function extractHtmlDocument(raw: string) {
   const doctype = source.search(/<!doctype\s+html[^>]*>/i);
   const start = doctype >= 0 && doctype < htmlStart ? doctype : htmlStart;
   return source.slice(start, htmlEnd + 7).trim();
+}
+
+function decodedText(value: string) {
+  return value
+    .replace(/<script[\s\S]*?<\/script>/gi, ' ')
+    .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/&nbsp;/gi, ' ')
+    .replace(/&amp;/gi, '&')
+    .replace(/&lt;/gi, '<')
+    .replace(/&gt;/gi, '>')
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;/gi, "'")
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+export function applicationGuide(raw: string) {
+  const html = extractHtmlDocument(raw) || raw;
+  const titleMatch = html.match(/<title[^>]*>([\s\S]*?)<\/title>/i);
+  const headingMatch = html.match(/<h1[^>]*>([\s\S]*?)<\/h1>/i);
+  const name =
+    decodedText(titleMatch?.[1] || headingMatch?.[1] || '') || '未命名应用';
+  const visible = decodedText(html).slice(0, 3000);
+  const capabilities: string[] = [];
+  if (/待办|任务|todo/i.test(visible)) capabilities.push('管理任务与完成状态');
+  if (/笔记|记录|note/i.test(visible)) capabilities.push('记录和整理内容');
+  if (/搜索|筛选|search/i.test(visible)) capabilities.push('搜索或筛选信息');
+  if (/计时|倒计时|timer|专注/i.test(visible))
+    capabilities.push('运行计时流程');
+  if (/登录|注册|sign in|log in/i.test(visible))
+    capabilities.push('完成账号操作');
+  if (/图表|仪表盘|dashboard|数据/i.test(visible))
+    capabilities.push('查看数据概览');
+  if (/游戏|得分|分数|game/i.test(visible)) capabilities.push('进行互动体验');
+  const introduction = capabilities.length
+    ? `${name}是一款可在浏览器中直接使用的应用，支持${capabilities.slice(0, 3).join('、')}。`
+    : `${name}是一款可在浏览器中直接使用的交互式单页应用。`;
+  const instructions: string[] = [];
+  if (/<input|<textarea|contenteditable/i.test(html))
+    instructions.push('在页面输入区域填写内容，再使用对应操作按钮提交。');
+  if (/<button/i.test(html))
+    instructions.push('按照按钮文字完成主要操作，页面会即时反馈结果。');
+  if (/localStorage/i.test(html))
+    instructions.push('应用数据会自动保存，刷新页面后仍可继续使用。');
+  if (!instructions.length)
+    instructions.push('打开应用后，按照页面中的提示完成主要操作。');
+  return { name, introduction, instructions };
 }
 
 export function previewDocument(
@@ -86,7 +66,7 @@ export function previewDocument(
     .replace(/>/g, '\\u003e')
     .replace(/\u2028/g, '\\u2028')
     .replace(/\u2029/g, '\\u2029');
-  const bridge = `<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: https:; font-src data:; connect-src 'none'; form-action 'none'; base-uri 'none'"><script>(function(){var values=${serialized};function keys(){return Object.keys(values)}function persist(){parent.postMessage({source:'atom-preview',type:'storage',data:values},'*')}var store={get length(){return keys().length},key:function(i){return keys()[i]??null},getItem:function(k){k=String(k);return Object.prototype.hasOwnProperty.call(values,k)?values[k]:null},setItem:function(k,v){values[String(k)]=String(v);persist()},removeItem:function(k){delete values[String(k)];persist()},clear:function(){values={};persist()}};try{Object.defineProperty(window,'localStorage',{configurable:true,value:store})}catch(e){window.atomStorage=store}})();</script>`;
+  const bridge = `<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: https:; font-src data:; connect-src 'none'; form-action 'none'; base-uri 'none'"><style id="atom-select-style">.atom-selecting *{cursor:crosshair!important}.atom-selection-hover{outline:2px solid #315efb!important;outline-offset:2px!important}.atom-selection-picked{outline:3px solid #315efb!important;outline-offset:3px!important}</style><script>(function(){var values=${serialized},selecting=false,hovered=null,picked=null;function keys(){return Object.keys(values)}function persist(){parent.postMessage({source:'atom-preview',type:'storage',data:values},'*')}var store={get length(){return keys().length},key:function(i){return keys()[i]??null},getItem:function(k){k=String(k);return Object.prototype.hasOwnProperty.call(values,k)?values[k]:null},setItem:function(k,v){values[String(k)]=String(v);persist()},removeItem:function(k){delete values[String(k)];persist()},clear:function(){values={};persist()}};try{Object.defineProperty(window,'localStorage',{configurable:true,value:store})}catch(e){window.atomStorage=store}function clearHover(){if(hovered)hovered.classList.remove('atom-selection-hover');hovered=null}function pathFor(el){var parts=[];while(el&&el!==document.body&&parts.length<5){var part=el.tagName.toLowerCase();if(el.id){part+='#'+el.id;parts.unshift(part);break}if(el.classList.length)part+='.'+Array.from(el.classList).filter(function(x){return !x.startsWith('atom-selection')}).slice(0,2).join('.');parts.unshift(part);el=el.parentElement}return ['body'].concat(parts).join(' > ')}window.addEventListener('message',function(event){if(!event.data||event.data.source!=='atom-studio'||event.data.type!=='selection-mode')return;selecting=!!event.data.enabled;document.documentElement.classList.toggle('atom-selecting',selecting);if(!selecting)clearHover()});document.addEventListener('mouseover',function(event){if(!selecting)return;clearHover();hovered=event.target;hovered.classList.add('atom-selection-hover')},true);document.addEventListener('mouseout',function(){if(selecting)clearHover()},true);document.addEventListener('click',function(event){if(!selecting)return;event.preventDefault();event.stopPropagation();clearHover();if(picked)picked.classList.remove('atom-selection-picked');picked=event.target;picked.classList.add('atom-selection-picked');parent.postMessage({source:'atom-preview',type:'selection',data:{tag:picked.tagName.toLowerCase(),id:picked.id||'',classes:Array.from(picked.classList).filter(function(x){return !x.startsWith('atom-selection')}).join(' '),text:(picked.innerText||picked.textContent||'').trim().slice(0,160),path:pathFor(picked)}},'*')},true)})();</script>`;
   const withoutDoctype = html.replace(/<!doctype[^>]*>/i, '');
   if (/<head[\s>]/i.test(withoutDoctype)) {
     return (

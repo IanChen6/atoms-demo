@@ -24,29 +24,31 @@ call(a,'/api/auth',{'action':'register','email':email,'name':'测试账号','pas
 call(a,'/api/auth',{'action':'register','email':email,'name':'测试账号','password':password})
 assert call(a,'/api/auth')['user']['email']==email
 call(b,'/api/auth',{'action':'register','email':email,'name':'重复账号','password':password},409)
-clarified=call(a,'/api/studio',{'prompt':'做一个应用','mode':'ai'})
+clarified=call(a,'/api/studio',{'prompt':'做一个应用'})
 assert clarified['outcome']=='clarification'
 clarification_project=clarified['project']
 clarification_state=call(a,'/api/studio?project='+clarification_project)
 assert clarification_state['versions']==[]
 assert [m['role'] for m in clarification_state['messages']]==['user','assistant']
 assert clarification_state['messages'][1]['status']=='clarification'
-p=call(a,'/api/studio',{'prompt':'待办清单，可以添加、完成和删除任务','mode':'demo'})['project']
+p=call(a,'/api/studio',{'prompt':'待办清单，可以添加、完成和删除任务'})['project']
 project_state=call(a,'/api/studio?project='+p)
 v=project_state['versions'][0]
 assert [m['status'] for m in project_state['messages']]==['success','success']
-saved={'atom-demo-items':'[{"id":1,"text":"刷新后仍保留","done":false}]'}
+call(a,'/api/project',{'action':'metadata','project':p,'title':'极简待办','description':'管理日常任务。','instructions':'输入任务并点击添加。\n点击任务切换完成状态。'})
+call(a,'/api/project',{'action':'review','project':p,'version':v['id']})
+saved={'atom-app-items':'[{"id":1,"text":"刷新后仍保留","done":false}]'}
 assert call(a,'/api/app-data',{'project':p,'data':saved})['saved'] is True
 assert call(a,'/api/app-data?project='+p)['data']==saved
 published=call(a,'/api/publish',{'action':'publish','project':p,'version':v['id']})
 assert published['published'] is True
 assert call(a,'/api/studio?project='+p)['projects'][0]['published_version']==v['id']
-call(a,'/api/studio',{'project':p,'prompt':'发布后禁止修改','mode':'demo'},409)
+call(a,'/api/studio',{'project':p,'prompt':'发布后禁止修改'},409)
 assert call(a,'/api/publish',{'action':'unpublish','project':p})['published'] is False
 assert call(a,'/api/studio?project='+p)['projects'][0]['published_version'] is None
 f=call(a,'/api/fork',{'version':v['id']})['project'];assert f!=p
 assert call(a,'/api/studio?project='+f)['versions'][0]['html']==v['html']
-call(a,'/api/studio',{'project':f,'prompt':'改成深色主题','mode':'demo'})
+call(a,'/api/studio',{'project':f,'prompt':'改成深色主题'})
 assert len(call(a,'/api/studio?project='+p)['versions'])==1
 assert len(call(a,'/api/studio?project='+f)['versions'])==2
 call(b,'/api/auth',{'action':'register','email':'other-'+suffix+'@example.com','name':'另一账号','password':password})

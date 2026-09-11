@@ -34,7 +34,6 @@ assert status == 200
 status, generated = call(
     "/api/studio",
     {
-        "mode": "ai",
         "prompt": "做一个极简计数器，可以增加、减少和归零数字。",
     },
 )

@@ -8,6 +8,11 @@ export const projects = sqliteTable(
     created: integer('created').notNull(),
     publishedVersion: text('published_version'),
     publishedAt: integer('published_at'),
+    description: text('description').notNull().default(''),
+    instructions: text('instructions').notNull().default(''),
+    reviewStatus: text('review_status').notNull().default('draft'),
+    reviewVersion: text('review_version'),
+    reviewRequestedAt: integer('review_requested_at'),
   },
   (t) => [index('projects_owner').on(t.owner)],
 );

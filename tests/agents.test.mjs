@@ -1,23 +1,17 @@
 import assert from 'node:assert/strict';
-import { collaborationTrace, engineeringBrief } from '../lib/agents.ts';
+import { engineeringBrief } from '../lib/agents.ts';
 
-const pending = collaborationTrace(
+const newApplication = engineeringBrief(
   '待办应用，支持添加、完成和删除任务',
   false,
 );
-assert.equal(pending.length, 4);
-assert.deepEqual(
-  pending.map((item) => item.role),
-  ['analyst', 'designer', 'engineer', 'reviewer'],
-);
-assert.equal(pending[0].status, 'active');
-assert.equal(pending[1].status, 'pending');
-assert.match(pending[1].detail, /新增|完成|删除/);
+assert.match(newApplication, /创建一个可直接体验的核心产品/);
+assert.match(newApplication, /添加、完成和删除/);
 
-const finished = collaborationTrace('改成深色主题', true, 4, 'success');
-assert.ok(finished.every((item) => item.status === 'done'));
-assert.match(finished[2].detail, /保留已有功能/);
+const existingApplication = engineeringBrief('改成深色主题', true);
+assert.match(existingApplication, /基于现有应用实现本轮修改/);
+assert.match(existingApplication, /保留现有功能与数据/);
 
-const publicText = JSON.stringify(finished) + engineeringBrief('制作计时器', false);
+const publicText = newApplication + existingApplication;
 assert.doesNotMatch(publicText, /chain.of.thought|raw_reasoning|隐藏推理/i);
-console.log('PASS: public multi-agent trace and role handoff');
+console.log('PASS: engineering brief contains only explicit build constraints');
